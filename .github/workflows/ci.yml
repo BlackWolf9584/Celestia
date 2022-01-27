@@ -76,7 +76,7 @@ jobs:
         c:\vcpkg\ports\qt5-base\qtdeploy.ps1 qt\${{env.BUILD_TYPE}}\
         7z a celestia-qt.${{matrix.platform}}.7z qt\${{env.BUILD_TYPE}}\*
         cd ..\tools
-        7z a celestia-tools.${{matrix.platform}}.7z xyzv2bin\${{env.BUILD_TYPE}}\*.exe spice2xyzv\${{env.BUILD_TYPE}}\*.exe
+        7z a celestia-tools.${{matrix.platform}}.7z xyzv2bin\${{env.BUILD_TYPE}}\*.exe
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
