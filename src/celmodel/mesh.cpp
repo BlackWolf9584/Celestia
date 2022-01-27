@@ -322,13 +322,7 @@ Mesh::addGroup(PrimitiveGroupType prim,
 {
     PrimitiveGroup g;
     if (prim == PrimitiveGroupType::LineStrip || prim == PrimitiveGroupType::LineList)
-    {
         g = createLinePrimitiveGroup(prim == PrimitiveGroupType::LineStrip, indices);
-    }
-    else
-    {
-        g.primOverride = prim;
-    }
 
     g.indices = std::move(indices);
     g.prim = prim;
@@ -721,4 +715,53 @@ Mesh::getPrimitiveCount() const
     return count;
 }
 
+void
+Mesh::merge(const Mesh &other)
+{
+    auto &ti = groups.front().indices;
+    const auto &oi = other.groups.front().indices;
+
+    ti.reserve(ti.size() + oi.size());
+    for (auto i : oi)
+        ti.push_back(i + nVertices);
+
+    vertices.reserve(vertices.size() + other.vertices.size());
+    vertices.insert(vertices.end(), other.vertices.begin(), other.vertices.end());
+
+    nVertices += other.nVertices;
+}
+
+bool
+Mesh::canMerge(const Mesh &other) const
+{
+    if (getGroupCount() != 1 || other.getGroupCount() != 1)
+        return false;
+
+    const auto &tg = groups.front();
+    const auto &og = other.groups.front();
+
+    if (tg.vertexCountOverride != 0 || og.vertexCountOverride != 0)
+        return false;
+
+    if (tg.prim != og.prim || tg.prim != PrimitiveGroupType::TriList)
+        return false;
+
+    if (tg.materialIndex != og.materialIndex)
+        return false;
+
+    if (vertexDesc.strideBytes != other.vertexDesc.strideBytes)
+        return false;
+
+    for (auto i = VertexAttributeSemantic::Position;
+         i < VertexAttributeSemantic::SemanticMax;
+         i = static_cast<VertexAttributeSemantic>(1 + static_cast<uint16_t>(i)))
+    {
+        auto &ta = vertexDesc.getAttribute(i);
+        auto &oa = other.vertexDesc.getAttribute(i);
+        if (ta.format != oa.format || ta.offsetWords != oa.offsetWords)
+            return false;
+    }
+
+    return true;
+}
 } // end namespace cmod

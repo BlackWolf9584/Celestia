@@ -237,6 +237,9 @@ class Mesh
     unsigned int getVertexStrideWords() const { return vertexDesc.strideBytes / sizeof(cmod::VWord); }
     unsigned int getPrimitiveCount() const;
 
+    void merge(const Mesh&);
+    bool canMerge(const Mesh&) const;
+
  private:
     PrimitiveGroup createLinePrimitiveGroup(bool lineStrip, const std::vector<Index32>& indices);
     void optimize();
